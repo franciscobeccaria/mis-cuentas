@@ -1,0 +1,17 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import RegistroComponent from '../sections/Registro.svelte';
+---
+
+<MainLayout title="Registro">
+  <section>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Registro de Gastos</h1>
+    <p class="text-gray-600 mb-8">
+      Registra y clasifica tus gastos mensuales por tipo y medio de pago.
+    </p>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <RegistroComponent client:load />
+    </div>
+  </section>
+</MainLayout>

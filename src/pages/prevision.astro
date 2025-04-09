@@ -1,0 +1,17 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import PrevisionComponent from '../sections/Prevision.svelte';
+---
+
+<MainLayout title="Previsiu00f3n">
+  <section>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Previsiu00f3n de Gastos</h1>
+    <p class="text-gray-600 mb-8">
+      Planifica tus gastos fijos, cuotas mensuales y establece presupuestos por categoru00eda.
+    </p>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <PrevisionComponent client:load />
+    </div>
+  </section>
+</MainLayout>

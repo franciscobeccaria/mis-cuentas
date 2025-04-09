@@ -1,0 +1,17 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import CajaComponent from '../sections/Caja.svelte';
+---
+
+<MainLayout title="Caja">
+  <section>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Caja</h1>
+    <p class="text-gray-600 mb-8">
+      Visualiza tu capital disponible y su distribución por ubicación: banco, billeteras, efectivo, etc.
+    </p>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <CajaComponent client:load />
+    </div>
+  </section>
+</MainLayout>

@@ -1,0 +1,58 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { name: 'Inicio', path: '/' },
+  { name: 'Previsión', path: '/prevision' },
+  { name: 'Caja', path: '/caja' },
+  { name: 'Registro', path: '/registro' },
+];
+---
+
+<nav class="container mx-auto px-4 py-4">
+  <div class="flex justify-between items-center">
+    <a href="/" class="text-2xl font-bold text-emerald-600">Mis Cuentas</a>
+    
+    <div class="hidden md:flex space-x-6">
+      {navItems.map(item => (
+        <a 
+          href={item.path} 
+          class={`font-medium hover:text-emerald-600 transition-colors ${currentPath === item.path ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-600'}`}
+        >
+          {item.name}
+        </a>
+      ))}
+    </div>
+    
+    <button class="md:hidden text-gray-600" id="mobile-menu-button" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Mobile menu -->
+  <div class="md:hidden hidden" id="mobile-menu">
+    <div class="flex flex-col space-y-4 mt-4 pb-3">
+      {navItems.map(item => (
+        <a 
+          href={item.path} 
+          class={`font-medium hover:text-emerald-600 transition-colors ${currentPath === item.path ? 'text-emerald-600' : 'text-gray-600'}`}
+        >
+          {item.name}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileMenuButton?.addEventListener('click', () => {
+      mobileMenu?.classList.toggle('hidden');
+    });
+  });
+</script>
