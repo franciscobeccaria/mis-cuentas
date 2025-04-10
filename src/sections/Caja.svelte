@@ -5,7 +5,6 @@
   type Cuenta = {
     id: string;
     nombre: string;
-    tipo: 'banco' | 'efectivo' | 'billetera' | 'otro';
     saldo: number;
   };
 
@@ -19,7 +18,7 @@
 
   // Estado local
   let cuentas: Cuenta[] = [];
-  let nuevaCuenta = { nombre: '', tipo: 'banco', saldo: 0 };
+  let nuevaCuenta = { nombre: '', saldo: 0 };
   let editandoCuenta: Cuenta | null = null;
   let historial: RegistroHistorico[] = [];
   let mostrarHistorial = false;
@@ -37,9 +36,9 @@
     } else {
       // Datos de ejemplo
       cuentas = [
-        { id: crypto.randomUUID(), nombre: 'Cuenta Bancaria', tipo: 'banco', saldo: 150000 },
-        { id: crypto.randomUUID(), nombre: 'Billetera', tipo: 'billetera', saldo: 25000 },
-        { id: crypto.randomUUID(), nombre: 'Efectivo', tipo: 'efectivo', saldo: 10000 }
+        { id: crypto.randomUUID(), nombre: 'Cuenta Bancaria', saldo: 150000 },
+        { id: crypto.randomUUID(), nombre: 'Billetera', saldo: 25000 },
+        { id: crypto.randomUUID(), nombre: 'Efectivo', saldo: 10000 }
       ];
       localStorage.setItem('cuentas', JSON.stringify(cuentas));
     }
@@ -56,7 +55,6 @@
     const cuenta: Cuenta = {
       id: crypto.randomUUID(),
       nombre: nuevaCuenta.nombre,
-      tipo: nuevaCuenta.tipo as 'banco' | 'efectivo' | 'billetera' | 'otro',
       saldo: nuevaCuenta.saldo
     };
     
@@ -66,7 +64,7 @@
     // Ya no guardamos automáticamente en el historial
     
     // Resetear formulario
-    nuevaCuenta = { nombre: '', tipo: 'banco', saldo: 0 };
+    nuevaCuenta = { nombre: '', saldo: 0 };
   }
 
   function iniciarEdicion(cuenta: Cuenta) {
@@ -80,7 +78,7 @@
   function guardarEdicion() {
     if (!editandoCuenta) return;
     
-    const cuentaOriginal = cuentas.find(c => c.id === editandoCuenta.id);
+    const cuentaOriginal = cuentas.find(c => c.id === editandoCuenta?.id);
     const nombreCuenta = cuentaOriginal ? cuentaOriginal.nombre : '';
     
     // Asegurarse de que editandoCuenta no sea null antes de usarlo
@@ -118,44 +116,32 @@
   // Calcular totales
   $: totalDisponible = cuentas.reduce((total, cuenta) => total + cuenta.saldo, 0);
   
-  // Calcular saldos por tipo
-  $: saldoPorTipo = cuentas.reduce((acc, cuenta) => {
-    acc[cuenta.tipo] = (acc[cuenta.tipo] || 0) + cuenta.saldo;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Obtener datos para el gráfico
-  $: datosPorTipo = Object.entries(saldoPorTipo).map(([tipo, saldo]) => ({
-    tipo,
-    saldo,
-    porcentaje: Math.round((saldo / totalDisponible) * 100)
+  // Ya no necesitamos calcular saldos por tipo, ya que unificamos nombre y tipo
+  $: datosPorTipo = cuentas.map(cuenta => ({
+    nombre: cuenta.nombre,
+    saldo: cuenta.saldo,
+    porcentaje: totalDisponible > 0 ? Math.round((cuenta.saldo / totalDisponible) * 100) : 0
   }));
 
-  // Colores para los tipos de cuenta
-  const coloresTipo = {
-    banco: '#3b82f6', // Azul
-    efectivo: '#10b981', // Verde
-    billetera: '#f59e0b', // Amarillo
-    otro: '#8b5cf6' // Púrpura
-  };
+  // Colores para las cuentas (ahora usamos un array ya que no tenemos tipos predefinidos)
+  const colores = [
+    '#3b82f6', // Azul
+    '#10b981', // Verde
+    '#f59e0b', // Amarillo
+    '#8b5cf6', // Púrpura
+    '#ef4444', // Rojo
+    '#14b8a6', // Turquesa
+    '#a855f7'  // Violeta
+  ];
 
-  // Obtener nombre legible del tipo de cuenta
-  function getNombreTipo(tipo: string): string {
-    const nombres = {
-      banco: 'Banco',
-      efectivo: 'Efectivo',
-      billetera: 'Billetera',
-      otro: 'Otro'
-    };
-    return nombres[tipo as keyof typeof nombres] || tipo;
-  }
+  // Ya no necesitamos funciones relacionadas con el tipo de cuenta
 
   // Función para guardar un registro en el historial
   function guardarRegistroHistorico(descripcion: string, fechaPersonalizada?: string) {
     const registro: RegistroHistorico = {
       id: crypto.randomUUID(),
       fecha: fechaPersonalizada || new Date().toISOString(),
-      cuentas: JSON.parse(JSON.stringify(cuentas)) as Cuenta[], // Copia profunda de las cuentas con tipo explícito
+      cuentas: JSON.parse(JSON.stringify(cuentas)) as Cuenta[], // Copia profunda de las cuentas
       totalDisponible: totalDisponible,
       descripcion
     };
@@ -203,9 +189,9 @@
       <p class="text-3xl font-bold text-gray-900">{formatMonto(totalDisponible)}</p>
     </div>
     
-    {#each datosPorTipo as { tipo, saldo, porcentaje }}
-      <div class="bg-white p-6 rounded-lg shadow-md border-l-4" style={`border-color: ${coloresTipo[tipo as keyof typeof coloresTipo] || '#6b7280'}`}>
-        <h3 class="text-lg font-medium text-gray-700 mb-2">{getNombreTipo(tipo)}</h3>
+    {#each datosPorTipo as { nombre, saldo, porcentaje }, i}
+      <div class="bg-white p-6 rounded-lg shadow-md border-l-4" style={`border-color: ${colores[i % colores.length]}`}>
+        <h3 class="text-lg font-medium text-gray-700 mb-2">{nombre}</h3>
         <p class="text-3xl font-bold text-gray-900">{formatMonto(saldo)}</p>
         <p class="text-sm text-gray-500 mt-1">{porcentaje}% del total</p>
       </div>
@@ -218,23 +204,23 @@
     
     {#if datosPorTipo.length > 0}
       <div class="h-6 w-full rounded-full overflow-hidden bg-gray-200 mb-4">
-        {#each datosPorTipo as { tipo, porcentaje }, i}
+        {#each datosPorTipo as { nombre, porcentaje }, i}
           <div 
             class="h-full float-left" 
-            style={`width: ${porcentaje}%; background-color: ${coloresTipo[tipo as keyof typeof coloresTipo] || '#6b7280'}`}
-            title={`${getNombreTipo(tipo)}: ${porcentaje}%`}
+            style={`width: ${porcentaje}%; background-color: ${colores[i % colores.length]}`}
+            title={`${nombre}: ${porcentaje}%`}
           ></div>
         {/each}
       </div>
       
       <div class="flex flex-wrap gap-4">
-        {#each datosPorTipo as { tipo, saldo, porcentaje }}
+        {#each datosPorTipo as { nombre, saldo, porcentaje }, i}
           <div class="flex items-center">
             <div 
               class="w-4 h-4 mr-2 rounded-sm" 
-              style={`background-color: ${coloresTipo[tipo as keyof typeof coloresTipo] || '#6b7280'}`}
+              style={`background-color: ${colores[i % colores.length]}`}
             ></div>
-            <span class="text-sm">{getNombreTipo(tipo)}: {porcentaje}%</span>
+            <span class="text-sm">{nombre}: {formatMonto(saldo)} ({porcentaje}%)</span>
           </div>
         {/each}
       </div>
@@ -247,31 +233,19 @@
   <div class="bg-white p-6 rounded-lg shadow-md mb-8">
     <h3 class="text-lg font-medium mb-4">Agregar Nueva Cuenta</h3>
     
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Cuenta</label>
         <input 
           type="text" 
           id="nombre" 
           bind:value={nuevaCuenta.nombre} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+          placeholder="Ej: Banco Santander, Billetera, Efectivo..."
         />
       </div>
       <div>
-        <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-        <select 
-          id="tipo" 
-          bind:value={nuevaCuenta.tipo} 
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
-        >
-          <option value="banco">Banco</option>
-          <option value="efectivo">Efectivo</option>
-          <option value="billetera">Billetera</option>
-          <option value="otro">Otro</option>
-        </select>
-      </div>
-      <div>
-        <label for="saldo" class="block text-sm font-medium text-gray-700 mb-1">Saldo</label>
+        <label for="saldo" class="block text-sm font-medium text-gray-700 mb-1">Saldo Inicial</label>
         <input 
           type="number" 
           id="saldo" 
@@ -301,7 +275,6 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
             </tr>
@@ -316,17 +289,6 @@
                       bind:value={editandoCuenta.nombre} 
                       class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <select 
-                      bind:value={editandoCuenta.tipo} 
-                      class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
-                    >
-                      <option value="banco">Banco</option>
-                      <option value="efectivo">Efectivo</option>
-                      <option value="billetera">Billetera</option>
-                      <option value="otro">Otro</option>
-                    </select>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <input 
@@ -353,7 +315,6 @@
               {:else}
                 <tr>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cuenta.nombre}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getNombreTipo(cuenta.tipo)}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatMonto(cuenta.saldo)}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button 
@@ -472,8 +433,7 @@
                   {#each registro.cuentas as cuenta}
                     <div class="text-sm py-1">
                       <span class="font-medium">{cuenta.nombre}</span>
-                      <span class="text-gray-500 mx-2">({getNombreTipo(cuenta.tipo)})</span>
-                      <span class="font-medium">{formatMonto(cuenta.saldo)}</span>
+                      <span class="font-medium ml-2">{formatMonto(cuenta.saldo)}</span>
                     </div>
                   {/each}
                 </div>
