@@ -1,87 +1,87 @@
-// Utilidad para gestionar categorías
+// Utility for managing categories
 
-// Función para obtener todas las categorías almacenadas
-export function obtenerCategorias() {
-  const categoriasGuardadas = localStorage.getItem('categorias');
+// Function to get all stored categories
+export function getCategories() {
+  const savedCategories = localStorage.getItem('categories');
   
-  if (categoriasGuardadas) {
-    return JSON.parse(categoriasGuardadas);
+  if (savedCategories) {
+    return JSON.parse(savedCategories);
   } else {
-    // Categorías predeterminadas
-    const categoriasPredeterminadas = [
-      { id: 'supermercado', nombre: 'Supermercado', color: '#3b82f6' },
-      { id: 'delivery', nombre: 'Delivery', color: '#f59e0b' },
-      { id: 'salidas', nombre: 'Salidas', color: '#ec4899' },
-      { id: 'servicios', nombre: 'Servicios', color: '#10b981' },
-      { id: 'transporte', nombre: 'Transporte', color: '#8b5cf6' },
-      { id: 'vivienda', nombre: 'Vivienda', color: '#ef4444' },
-      { id: 'auto', nombre: 'Auto', color: '#f97316' },
-      { id: 'cuotas', nombre: 'Cuotas', color: '#6366f1' },
-      { id: 'transferencia', nombre: 'Transferencia', color: '#14b8a6' },
-      { id: 'otros', nombre: 'Otros', color: '#6b7280' }
+    // Default categories
+    const defaultCategories = [
+      { id: 'supermercado', name: 'Supermercado', color: '#3b82f6' },
+      { id: 'delivery', name: 'Delivery', color: '#f59e0b' },
+      { id: 'salidas', name: 'Salidas', color: '#ec4899' },
+      { id: 'servicios', name: 'Servicios', color: '#10b981' },
+      { id: 'transporte', name: 'Transporte', color: '#8b5cf6' },
+      { id: 'vivienda', name: 'Vivienda', color: '#ef4444' },
+      { id: 'auto', name: 'Auto', color: '#f97316' },
+      { id: 'cuotas', name: 'Cuotas', color: '#6366f1' },
+      { id: 'transferencia', name: 'Transferencia', color: '#14b8a6' },
+      { id: 'otros', name: 'Otros', color: '#6b7280' }
     ];
     
-    // Guardar categorías predeterminadas en localStorage
-    localStorage.setItem('categorias', JSON.stringify(categoriasPredeterminadas));
-    return categoriasPredeterminadas;
+    // Save default categories to localStorage
+    localStorage.setItem('categories', JSON.stringify(defaultCategories));
+    return defaultCategories;
   }
 }
 
-// Función para agregar una nueva categoría
-export function agregarCategoria(nombre, color = '#6b7280') {
-  const categorias = obtenerCategorias();
+// Function to add a new category
+export function addCategory(name, color = '#6b7280') {
+  const categories = getCategories();
   
-  // Generar un ID a partir del nombre (slug)
-  const id = nombre.toLowerCase()
+  // Generate an ID from the name (slug)
+  const id = name.toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-    .replace(/\s+/g, '-') // Reemplazar espacios con guiones
-    .replace(/[^a-z0-9-]/g, ''); // Eliminar caracteres especiales
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, ''); // Remove special characters
   
-  // Verificar si ya existe una categoría con ese ID
-  if (categorias.some(cat => cat.id === id)) {
-    return { exito: false, mensaje: 'Ya existe una categoría con ese nombre' };
+  // Check if a category with that ID already exists
+  if (categories.some(cat => cat.id === id)) {
+    return { success: false, message: 'Ya existe una categoría con ese nombre' };
   }
   
-  // Agregar nueva categoría
-  const nuevaCategoria = { id, nombre, color };
-  categorias.push(nuevaCategoria);
+  // Add new category
+  const newCategory = { id, name, color };
+  categories.push(newCategory);
   
-  // Guardar en localStorage
-  localStorage.setItem('categorias', JSON.stringify(categorias));
+  // Save to localStorage
+  localStorage.setItem('categories', JSON.stringify(categories));
   
-  return { exito: true, categoria: nuevaCategoria };
+  return { success: true, category: newCategory };
 }
 
-// Función para eliminar una categoría
-export function eliminarCategoria(id) {
-  const categorias = obtenerCategorias();
-  const nuevasCategorias = categorias.filter(cat => cat.id !== id);
+// Function to delete a category
+export function deleteCategory(id) {
+  const categories = getCategories();
+  const newCategories = categories.filter(cat => cat.id !== id);
   
-  // Guardar en localStorage
-  localStorage.setItem('categorias', JSON.stringify(nuevasCategorias));
+  // Save to localStorage
+  localStorage.setItem('categories', JSON.stringify(newCategories));
   
-  return { exito: true };
+  return { success: true };
 }
 
-// Función para editar una categoría existente
-export function editarCategoria(id, nuevoNombre, nuevoColor) {
-  const categorias = obtenerCategorias();
-  const categoriaIndex = categorias.findIndex(cat => cat.id === id);
+// Function to edit an existing category
+export function editCategory(id, newName, newColor) {
+  const categories = getCategories();
+  const categoryIndex = categories.findIndex(cat => cat.id === id);
   
-  if (categoriaIndex === -1) {
-    return { exito: false, mensaje: 'Categoría no encontrada' };
+  if (categoryIndex === -1) {
+    return { success: false, message: 'Categoría no encontrada' };
   }
   
-  // Actualizar categoría
-  categorias[categoriaIndex] = {
-    ...categorias[categoriaIndex],
-    nombre: nuevoNombre || categorias[categoriaIndex].nombre,
-    color: nuevoColor || categorias[categoriaIndex].color
+  // Update category
+  categories[categoryIndex] = {
+    ...categories[categoryIndex],
+    name: newName || categories[categoryIndex].name,
+    color: newColor || categories[categoryIndex].color
   };
   
-  // Guardar en localStorage
-  localStorage.setItem('categorias', JSON.stringify(categorias));
+  // Save to localStorage
+  localStorage.setItem('categories', JSON.stringify(categories));
   
-  return { exito: true, categoria: categorias[categoriaIndex] };
+  return { success: true, category: categories[categoryIndex] };
 }

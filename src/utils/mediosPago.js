@@ -1,95 +1,95 @@
-// Utilidad para gestionar medios de pago
+// Utility for managing payment methods
 
-// Funciu00f3n para obtener todos los medios de pago almacenados
-export function obtenerMediosPago() {
-  const mediosPagoGuardados = localStorage.getItem('mediosPago');
+// Function to get all stored payment methods
+export function getPaymentMethods() {
+  const savedPaymentMethods = localStorage.getItem('paymentMethods');
   
-  if (mediosPagoGuardados) {
-    return JSON.parse(mediosPagoGuardados);
+  if (savedPaymentMethods) {
+    return JSON.parse(savedPaymentMethods);
   } else {
-    // Medios de pago predeterminados
-    const mediosPagoPredeterminados = [
-      { id: 'debito', nombre: 'Tarjeta de Du00e9bito', icono: 'credit-card' },
-      { id: 'credito', nombre: 'Tarjeta de Cru00e9dito', icono: 'credit-card' },
-      { id: 'efectivo', nombre: 'Efectivo', icono: 'cash' },
-      { id: 'transferencia', nombre: 'Transferencia', icono: 'bank' },
-      { id: 'otro', nombre: 'Otro', icono: 'dots-horizontal' }
+    // Default payment methods
+    const defaultPaymentMethods = [
+      { id: 'debito', name: 'Tarjeta de Débito', icon: 'credit-card' },
+      { id: 'credito', name: 'Tarjeta de Crédito', icon: 'credit-card' },
+      { id: 'efectivo', name: 'Efectivo', icon: 'cash' },
+      { id: 'transferencia', name: 'Transferencia', icon: 'bank' },
+      { id: 'otro', name: 'Otro', icon: 'dots-horizontal' }
     ];
     
-    // Guardar medios de pago predeterminados en localStorage
-    localStorage.setItem('mediosPago', JSON.stringify(mediosPagoPredeterminados));
-    return mediosPagoPredeterminados;
+    // Save default payment methods to localStorage
+    localStorage.setItem('paymentMethods', JSON.stringify(defaultPaymentMethods));
+    return defaultPaymentMethods;
   }
 }
 
-// Funciu00f3n para agregar un nuevo medio de pago
-export function agregarMedioPago(nombre, icono = 'credit-card') {
-  const mediosPago = obtenerMediosPago();
+// Function to add a new payment method
+export function addPaymentMethod(name, icon = 'credit-card') {
+  const paymentMethods = getPaymentMethods();
   
-  // Generar un ID a partir del nombre (slug)
-  const id = nombre.toLowerCase()
+  // Generate an ID from the name (slug)
+  const id = name.toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-    .replace(/\s+/g, '-') // Reemplazar espacios con guiones
-    .replace(/[^a-z0-9-]/g, ''); // Eliminar caracteres especiales
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, ''); // Remove special characters
   
-  // Verificar si ya existe un medio de pago con ese ID
-  if (mediosPago.some(medio => medio.id === id)) {
-    return { exito: false, mensaje: 'Ya existe un medio de pago con ese nombre' };
+  // Check if a payment method with that ID already exists
+  if (paymentMethods.some(method => method.id === id)) {
+    return { success: false, message: 'Ya existe un medio de pago con ese nombre' };
   }
   
-  // Agregar nuevo medio de pago
-  const nuevoMedioPago = { id, nombre, icono };
-  mediosPago.push(nuevoMedioPago);
+  // Add new payment method
+  const newPaymentMethod = { id, name, icon };
+  paymentMethods.push(newPaymentMethod);
   
-  // Guardar en localStorage
-  localStorage.setItem('mediosPago', JSON.stringify(mediosPago));
+  // Save to localStorage
+  localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
   
-  return { exito: true, medioPago: nuevoMedioPago };
+  return { success: true, paymentMethod: newPaymentMethod };
 }
 
-// Funciu00f3n para eliminar un medio de pago
-export function eliminarMedioPago(id) {
-  const mediosPago = obtenerMediosPago();
+// Function to delete a payment method
+export function deletePaymentMethod(id) {
+  const paymentMethods = getPaymentMethods();
   
-  // Verificar si es un medio de pago predeterminado
-  const mediosPagoPredeterminados = ['debito', 'credito', 'efectivo', 'transferencia', 'otro'];
-  if (mediosPagoPredeterminados.includes(id)) {
-    return { exito: false, mensaje: 'No se pueden eliminar los medios de pago predeterminados' };
+  // Check if it's a default payment method
+  const defaultPaymentMethods = ['debito', 'credito', 'efectivo', 'transferencia', 'otro'];
+  if (defaultPaymentMethods.includes(id)) {
+    return { success: false, message: 'No se pueden eliminar los medios de pago predeterminados' };
   }
   
-  const nuevosMediosPago = mediosPago.filter(medio => medio.id !== id);
+  const newPaymentMethods = paymentMethods.filter(method => method.id !== id);
   
-  // Guardar en localStorage
-  localStorage.setItem('mediosPago', JSON.stringify(nuevosMediosPago));
+  // Save to localStorage
+  localStorage.setItem('paymentMethods', JSON.stringify(newPaymentMethods));
   
-  return { exito: true };
+  return { success: true };
 }
 
-// Funciu00f3n para editar un medio de pago existente
-export function editarMedioPago(id, nuevoNombre, nuevoIcono) {
-  const mediosPago = obtenerMediosPago();
-  const medioIndex = mediosPago.findIndex(medio => medio.id === id);
+// Function to edit an existing payment method
+export function editPaymentMethod(id, newName, newIcon) {
+  const paymentMethods = getPaymentMethods();
+  const methodIndex = paymentMethods.findIndex(method => method.id === id);
   
-  if (medioIndex === -1) {
-    return { exito: false, mensaje: 'Medio de pago no encontrado' };
+  if (methodIndex === -1) {
+    return { success: false, message: 'Medio de pago no encontrado' };
   }
   
-  // Verificar si es un medio de pago predeterminado
-  const mediosPagoPredeterminados = ['debito', 'credito', 'efectivo', 'transferencia', 'otro'];
-  if (mediosPagoPredeterminados.includes(id)) {
-    return { exito: false, mensaje: 'No se pueden editar los medios de pago predeterminados' };
+  // Check if it's a default payment method
+  const defaultPaymentMethods = ['debito', 'credito', 'efectivo', 'transferencia', 'otro'];
+  if (defaultPaymentMethods.includes(id)) {
+    return { success: false, message: 'No se pueden editar los medios de pago predeterminados' };
   }
   
-  // Actualizar medio de pago
-  mediosPago[medioIndex] = {
-    ...mediosPago[medioIndex],
-    nombre: nuevoNombre || mediosPago[medioIndex].nombre,
-    icono: nuevoIcono || mediosPago[medioIndex].icono
+  // Update payment method
+  paymentMethods[methodIndex] = {
+    ...paymentMethods[methodIndex],
+    name: newName || paymentMethods[methodIndex].name,
+    icon: newIcon || paymentMethods[methodIndex].icon
   };
   
-  // Guardar en localStorage
-  localStorage.setItem('mediosPago', JSON.stringify(mediosPago));
+  // Save to localStorage
+  localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
   
-  return { exito: true, medioPago: mediosPago[medioIndex] };
+  return { success: true, paymentMethod: paymentMethods[methodIndex] };
 }

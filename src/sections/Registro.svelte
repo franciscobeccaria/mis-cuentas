@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { obtenerCategorias } from '../utils/categorias.js';
-  import { obtenerMediosPago } from '../utils/mediosPago.js';
+  import { getCategories } from '../utils/categorias.js';
+  import { getPaymentMethods } from '../utils/mediosPago.js';
 
-  // Tipos de datos
-  type Gasto = {
+  // Data types
+  type Expense = {
     id: string;
     concepto: string;
     monto: number;
@@ -13,172 +13,178 @@
     medioPago: string;
   };
 
-  // Estado local
-  let gastos: Gasto[] = [];
-  let nuevoGasto = { 
+  // Local state
+  let expenses: Expense[] = [];
+  let newExpense = { 
     concepto: '', 
     monto: 0, 
     fecha: new Date().toISOString().split('T')[0], 
     categoria: 'supermercado',
     medioPago: 'debito'
   };
-  let filtroCategoria = 'todas';
-  let filtroMedioPago = 'todos';
-  let mesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
+  let categoryFilter = 'todas';
+  let paymentMethodFilter = 'todos';
+  let currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-  // Categorías y medios de pago dinámicos
-  let categorias = [];
-  
-  // Interfaz para medios de pago
-  interface MedioPago {
+  // Categories and payment methods
+  interface Category {
     id: string;
     nombre: string;
-    icono: string;
+    color: string;
   }
   
-  let mediosPago: MedioPago[] = [];
+  let categories: Category[] = [];
+  
+  // Interface for payment methods
+  interface PaymentMethod {
+    id: string;
+    name: string;
+    icon: string;
+  }
+  
+  let paymentMethods: PaymentMethod[] = [];
 
-  // Cargar datos desde localStorage al montar el componente
+  // Load data from localStorage when component mounts
   onMount(() => {
-    // Cargar categorías y medios de pago
-    categorias = obtenerCategorias();
-    mediosPago = obtenerMediosPago();
+    // Load categories and payment methods
+    categories = getCategories();
+    paymentMethods = getPaymentMethods();
     
-    const storedGastos = localStorage.getItem('gastos');
+    const storedExpenses = localStorage.getItem('expenses');
     
-    if (storedGastos) {
-      gastos = JSON.parse(storedGastos);
+    if (storedExpenses) {
+      expenses = JSON.parse(storedExpenses);
     } else {
-      // Datos de ejemplo
+      // Sample data
       const hoy = new Date().toISOString().split('T')[0];
       const ayer = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       const anteayer = new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0];
       
-      gastos = [
+      expenses = [
         { id: crypto.randomUUID(), concepto: 'Compra semanal', monto: 15000, fecha: hoy, categoria: 'supermercado', medioPago: 'debito' },
         { id: crypto.randomUUID(), concepto: 'Pizza', monto: 3500, fecha: ayer, categoria: 'delivery', medioPago: 'efectivo' },
         { id: crypto.randomUUID(), concepto: 'Cine', monto: 5000, fecha: anteayer, categoria: 'salidas', medioPago: 'credito' }
       ];
-      localStorage.setItem('gastos', JSON.stringify(gastos));
+      localStorage.setItem('expenses', JSON.stringify(expenses));
     }
   });
 
-  // Funciones para manejar gastos
-  function agregarGasto() {
-    if (!nuevoGasto.concepto || nuevoGasto.monto <= 0 || !nuevoGasto.fecha) return;
+  // Functions to handle expenses
+  function addExpense() {
+    if (!newExpense.concepto || newExpense.monto <= 0 || !newExpense.fecha) return;
     
-    const gasto: Gasto = {
+    const expense: Expense = {
       id: crypto.randomUUID(),
-      concepto: nuevoGasto.concepto,
-      monto: nuevoGasto.monto,
-      fecha: nuevoGasto.fecha,
-      categoria: nuevoGasto.categoria,
-      medioPago: nuevoGasto.medioPago
+      concepto: newExpense.concepto,
+      monto: newExpense.monto,
+      fecha: newExpense.fecha,
+      categoria: newExpense.categoria,
+      medioPago: newExpense.medioPago
     };
     
-    gastos = [gasto, ...gastos];
-    localStorage.setItem('gastos', JSON.stringify(gastos));
+    expenses = [expense, ...expenses];
+    localStorage.setItem('expenses', JSON.stringify(expenses));
     
-    // Resetear formulario (manteniendo la fecha y categorías seleccionadas)
-    nuevoGasto = { 
-      ...nuevoGasto, 
+    // Reset form (keeping the date and selected categories)
+    newExpense = { 
+      ...newExpense, 
       concepto: '', 
       monto: 0 
     };
   }
 
-  function eliminarGasto(id: string) {
-    gastos = gastos.filter(gasto => gasto.id !== id);
-    localStorage.setItem('gastos', JSON.stringify(gastos));
+  function deleteExpense(id: string) {
+    expenses = expenses.filter(expense => expense.id !== id);
+    localStorage.setItem('expenses', JSON.stringify(expenses));
   }
 
-  // Formatear montos como pesos argentinos
-  function formatMonto(monto: number): string {
+  // Format amounts as Argentine pesos
+  function formatAmount(amount: number): string {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'ARS'
-    }).format(monto);
+    }).format(amount);
   }
 
-  // Formatear fecha para mostrar
-  function formatFecha(fechaISO: string): string {
-    const fecha = new Date(fechaISO);
-    return fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+  // Format date for display
+  function formatDate(isoDate: string): string {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
   }
 
-  // Obtener nombre de categoría
-  function getNombreCategoria(id: string): string {
-    const categoria = categorias.find(cat => cat.id === id);
-    return categoria ? categoria.nombre : id;
+  // Get category name
+  function getCategoryName(id: string): string {
+    const category = categories.find((cat: any) => cat.id === id);
+    return category ? category.nombre : id;
   }
 
-  // Obtener nombre de medio de pago
-  function getNombreMedioPago(id: string): string {
-    const medio = mediosPago.find(medio => medio.id === id);
-    return medio ? medio.nombre : id;
+  // Get payment method name
+  function getPaymentMethodName(id: string): string {
+    const method = paymentMethods.find((method: any) => method.id === id);
+    return method ? method.name : id;
   }
 
-  // Filtrar gastos por mes, categoría y medio de pago
-  $: gastosFiltrados = gastos.filter(gasto => {
-    // Filtro por mes
-    const cumpleMes = gasto.fecha.startsWith(mesActual);
+  // Filter expenses by month, category and payment method
+  $: filteredExpenses = expenses.filter((expense: Expense) => {
+    // Filter by month
+    const matchesMonth = expense.fecha.startsWith(currentMonth);
     
-    // Filtro por categoría
-    const cumpleCategoria = filtroCategoria === 'todas' || gasto.categoria === filtroCategoria;
+    // Filter by category
+    const matchesCategory = categoryFilter === 'todas' || expense.categoria === categoryFilter;
     
-    // Filtro por medio de pago
-    const cumpleMedioPago = filtroMedioPago === 'todos' || gasto.medioPago === filtroMedioPago;
+    // Filter by payment method
+    const matchesPaymentMethod = paymentMethodFilter === 'todos' || expense.medioPago === paymentMethodFilter;
     
-    return cumpleMes && cumpleCategoria && cumpleMedioPago;
+    return matchesMonth && matchesCategory && matchesPaymentMethod;
   });
 
-  // Calcular totales
-  $: totalGastosFiltrados = gastosFiltrados.reduce((total, gasto) => total + gasto.monto, 0);
+  // Calculate totals
+  $: totalFilteredExpenses = filteredExpenses.reduce((total: number, expense: Expense) => total + expense.monto, 0);
 
-  // Calcular gastos por categoría
-  $: gastosPorCategoria = gastosFiltrados.reduce((acc, gasto) => {
-    acc[gasto.categoria] = (acc[gasto.categoria] || 0) + gasto.monto;
+  // Calculate expenses by category
+  $: expensesByCategory = filteredExpenses.reduce((acc: Record<string, number>, expense: Expense) => {
+    acc[expense.categoria] = (acc[expense.categoria] || 0) + expense.monto;
     return acc;
   }, {} as Record<string, number>);
 
-  // Calcular gastos por medio de pago
-  $: gastosPorMedioPago = gastosFiltrados.reduce((acc, gasto) => {
-    acc[gasto.medioPago] = (acc[gasto.medioPago] || 0) + gasto.monto;
+  // Calculate expenses by payment method
+  $: expensesByPaymentMethod = filteredExpenses.reduce((acc: Record<string, number>, expense: Expense) => {
+    acc[expense.medioPago] = (acc[expense.medioPago] || 0) + expense.monto;
     return acc;
   }, {} as Record<string, number>);
 
-  // Obtener color de categoría
-  function getColorCategoria(id: string): string {
-    const categoria = categorias.find(cat => cat.id === id);
-    return categoria ? categoria.color : '#6b7280';
+  // Get category color
+  function getCategoryColor(id: string): string {
+    const category = categories.find((cat: any) => cat.id === id);
+    return category ? category.color : '#6b7280';
   }
 
-  // Función para cambiar de mes
-  function cambiarMes(incremento: number) {
-    const [año, mes] = mesActual.split('-').map(Number);
-    let nuevoMes = mes + incremento;
-    let nuevoAño = año;
+  // Function to change month
+  function changeMonth(increment: number) {
+    const [year, month] = currentMonth.split('-').map(Number);
+    let newMonth = month + increment;
+    let newYear = year;
     
-    if (nuevoMes > 12) {
-      nuevoMes = 1;
-      nuevoAño++;
-    } else if (nuevoMes < 1) {
-      nuevoMes = 12;
-      nuevoAño--;
+    if (newMonth > 12) {
+      newMonth = 1;
+      newYear++;
+    } else if (newMonth < 1) {
+      newMonth = 12;
+      newYear--;
     }
     
-    mesActual = `${nuevoAño}-${nuevoMes.toString().padStart(2, '0')}`;
+    currentMonth = `${newYear}-${newMonth.toString().padStart(2, '0')}`;
   }
 
-  // Obtener nombre del mes actual
-  $: nombreMes = new Date(`${mesActual}-01`).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  // Get current month name
+  $: monthName = new Date(`${currentMonth}-01`).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
 </script>
 
 <div>
   <!-- Selector de mes -->
   <div class="flex justify-between items-center mb-6">
     <button 
-      on:click={() => cambiarMes(-1)}
+      on:click={() => changeMonth(-1)}
       class="p-2 rounded-full hover:bg-gray-100 focus:outline-none"
       aria-label="Mes anterior"
     >
@@ -187,10 +193,10 @@
       </svg>
     </button>
     
-    <h2 class="text-xl font-semibold text-gray-800 capitalize">{nombreMes}</h2>
+    <h2 class="text-xl font-semibold text-gray-800 capitalize">{monthName}</h2>
     
     <button 
-      on:click={() => cambiarMes(1)}
+      on:click={() => changeMonth(1)}
       class="p-2 rounded-full hover:bg-gray-100 focus:outline-none"
       aria-label="Mes siguiente"
     >
@@ -262,7 +268,7 @@
     </div>
     
     <button 
-      on:click={agregarGasto}
+      on:click={addExpense}
       class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
     >
       Registrar Gasto
