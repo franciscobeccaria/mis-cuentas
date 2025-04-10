@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-import { obtenerCategorias } from '../utils/categorias.js';
+  import { obtenerCategorias } from '../utils/categorias.js';
+  import { obtenerMediosPago } from '../utils/mediosPago.js';
 
   // Tipos de datos
   type Gasto = {
@@ -25,21 +26,23 @@ import { obtenerCategorias } from '../utils/categorias.js';
   let filtroMedioPago = 'todos';
   let mesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-  // Categorías dinámicas y medios de pago predefinidos
+  // Categorías y medios de pago dinámicos
   let categorias = [];
-
-  const mediosPago = [
-    { id: 'debito', nombre: 'Tarjeta de Débito' },
-    { id: 'credito', nombre: 'Tarjeta de Crédito' },
-    { id: 'efectivo', nombre: 'Efectivo' },
-    { id: 'transferencia', nombre: 'Transferencia' },
-    { id: 'otro', nombre: 'Otro' }
-  ];
+  
+  // Interfaz para medios de pago
+  interface MedioPago {
+    id: string;
+    nombre: string;
+    icono: string;
+  }
+  
+  let mediosPago: MedioPago[] = [];
 
   // Cargar datos desde localStorage al montar el componente
   onMount(() => {
-    // Cargar categorías
+    // Cargar categorías y medios de pago
     categorias = obtenerCategorias();
+    mediosPago = obtenerMediosPago();
     
     const storedGastos = localStorage.getItem('gastos');
     

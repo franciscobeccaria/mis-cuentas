@@ -1,0 +1,15 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import GestionMediosPago from '../components/GestionMediosPago.svelte';
+---
+
+<MainLayout title="Gestiu00f3n de Medios de Pago">
+  <section class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestiu00f3n de Medios de Pago</h1>
+    <p class="text-gray-600">
+      Crea, edita y elimina medios de pago para personalizar cu00f3mo registras tus gastos.
+    </p>
+  </section>
+
+  <GestionMediosPago client:load />
+</MainLayout>
