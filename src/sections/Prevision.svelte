@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { obtenerCategorias } from '../utils/categorias.js';
+  import { getCategories } from '../utils/categorias.js';
 
   // Tipos de datos
   type GastoFijo = {
@@ -57,7 +57,7 @@
   // Cargar datos desde localStorage al montar el componente
   onMount(() => {
     // Cargar categorías
-    categorias = obtenerCategorias();
+    categorias = getCategories();
     
     const storedGastos = localStorage.getItem('gastosFijos');
     const storedCuotas = localStorage.getItem('cuotas');

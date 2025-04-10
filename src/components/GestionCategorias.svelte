@@ -1,11 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { obtenerCategorias, agregarCategoria, eliminarCategoria, editarCategoria } from '../utils/categorias.js';
+  import { getCategories, addCategory, deleteCategory, editCategory } from '../utils/categorias.js';
 
   // Estado local
-  let categorias = [];
-  let nuevaCategoria = { nombre: '', color: '#6b7280' };
-  let categoriaEditando = null;
+  interface Category {
+    id: string;
+    name: string;
+    color: string;
+  }
+
+  let categorias: Category[] = [];
+  interface NewCategory {
+    nombre: string;
+    color: string;
+  }
+
+  let nuevaCategoria: NewCategory = { nombre: '', color: '#6b7280' };
+  let categoriaEditando: Category | null = null;
   let mensajeError = '';
   let mensajeExito = '';
 
@@ -29,7 +40,7 @@
   });
 
   function cargarCategorias() {
-    categorias = obtenerCategorias();
+    categorias = getCategories();
   }
 
   function agregarNuevaCategoria() {
@@ -41,19 +52,26 @@
       return;
     }
 
-    const resultado = agregarCategoria(nuevaCategoria.nombre, nuevaCategoria.color);
+    const resultado = addCategory(nuevaCategoria.nombre, nuevaCategoria.color);
 
-    if (resultado.exito) {
-      mensajeExito = `Categoría "${nuevaCategoria.nombre}" agregada correctamente`;
+    if (resultado.success) {
+      const nombreCategoria = nuevaCategoria.nombre || '';
+      mensajeExito = `Categoría "${nombreCategoria}" agregada correctamente`;
       nuevaCategoria = { nombre: '', color: '#6b7280' };
       cargarCategorias();
     } else {
-      mensajeError = resultado.mensaje;
+      mensajeError = resultado.message;
     }
   }
 
-  function iniciarEdicion(categoria) {
-    categoriaEditando = { ...categoria };
+  function iniciarEdicion(categoria: Category) {
+    // Creamos una nueva categoría con los campos correctos en inglés
+    categoriaEditando = { 
+      id: categoria.id,
+      name: categoria.name,
+      color: categoria.color 
+    };
+    mensajeError = '';
   }
 
   function cancelarEdicion() {
@@ -64,31 +82,32 @@
     mensajeError = '';
     mensajeExito = '';
 
-    if (!categoriaEditando.nombre.trim()) {
+    if (!categoriaEditando || !categoriaEditando.name.trim()) {
       mensajeError = 'El nombre de la categoría es obligatorio';
       return;
     }
 
-    const resultado = editarCategoria(
+    const resultado = editCategory(
       categoriaEditando.id, 
-      categoriaEditando.nombre, 
+      categoriaEditando.name, 
       categoriaEditando.color
     );
 
-    if (resultado.exito) {
-      mensajeExito = `Categoría "${categoriaEditando.nombre}" actualizada correctamente`;
+    if (resultado.success) {
+      const nombreCategoria = categoriaEditando?.name || '';
+      mensajeExito = `Categoría "${nombreCategoria}" actualizada correctamente`;
       categoriaEditando = null;
       cargarCategorias();
     } else {
-      mensajeError = resultado.mensaje;
+      mensajeError = resultado.message;
     }
   }
 
-  function eliminarCategoriaSeleccionada(id, nombre) {
-    if (confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?`)) {
-      eliminarCategoria(id);
+  function eliminarCategoriaSeleccionada(id: string, name: string) {
+    if (confirm(`¿Estás seguro de eliminar la categoría "${name}"?`)) {
+      deleteCategory(id);
       cargarCategorias();
-      mensajeExito = `Categoría "${nombre}" eliminada correctamente`;
+      mensajeExito = `Categoría "${name}" eliminada correctamente`;
     }
   }
 </script>
@@ -138,6 +157,7 @@
                 class="w-6 h-6 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                 style={`background-color: ${color};`}
                 on:click={() => nuevaCategoria.color = color}
+                aria-label={`Seleccionar color ${color}`}
               ></button>
             {/each}
           </div>
@@ -186,7 +206,8 @@
                             type="button"
                             class="w-5 h-5 rounded-full border border-gray-300 focus:outline-none"
                             style={`background-color: ${color};`}
-                            on:click={() => categoriaEditando.color = color}
+                            on:click={() => categoriaEditando && (categoriaEditando.color = color)}
+                            aria-label={`Seleccionar color ${color}`}
                           ></button>
                         {/each}
                       </div>
@@ -195,12 +216,12 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <input 
                       type="text" 
-                      bind:value={categoriaEditando.nombre} 
+                      bind:value={categoriaEditando.name} 
                       class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {categoriaEditando.id}
+                    {categoriaEditando?.id}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button 
@@ -226,7 +247,7 @@
                     ></div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {categoria.nombre}
+                    {categoria.name}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {categoria.id}
@@ -239,7 +260,7 @@
                       Editar
                     </button>
                     <button 
-                      on:click={() => eliminarCategoriaSeleccionada(categoria.id, categoria.nombre)}
+                      on:click={() => eliminarCategoriaSeleccionada(categoria.id, categoria.name)}
                       class="text-red-600 hover:text-red-900 focus:outline-none"
                     >
                       Eliminar

@@ -29,7 +29,7 @@
   // Categories and payment methods
   interface Category {
     id: string;
-    nombre: string;
+    name: string;
     color: string;
   }
   
@@ -56,14 +56,14 @@
       expenses = JSON.parse(storedExpenses);
     } else {
       // Sample data
-      const hoy = new Date().toISOString().split('T')[0];
-      const ayer = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      const anteayer = new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const twoDaysAgo = new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0];
       
       expenses = [
-        { id: crypto.randomUUID(), concepto: 'Compra semanal', monto: 15000, fecha: hoy, categoria: 'supermercado', medioPago: 'debito' },
-        { id: crypto.randomUUID(), concepto: 'Pizza', monto: 3500, fecha: ayer, categoria: 'delivery', medioPago: 'efectivo' },
-        { id: crypto.randomUUID(), concepto: 'Cine', monto: 5000, fecha: anteayer, categoria: 'salidas', medioPago: 'credito' }
+        { id: crypto.randomUUID(), concepto: 'Compra semanal', monto: 15000, fecha: today, categoria: 'supermercado', medioPago: 'debito' },
+        { id: crypto.randomUUID(), concepto: 'Pizza', monto: 3500, fecha: yesterday, categoria: 'delivery', medioPago: 'efectivo' },
+        { id: crypto.randomUUID(), concepto: 'Cine', monto: 5000, fecha: twoDaysAgo, categoria: 'salidas', medioPago: 'credito' }
       ];
       localStorage.setItem('expenses', JSON.stringify(expenses));
     }
@@ -115,7 +115,7 @@
   // Get category name
   function getCategoryName(id: string): string {
     const category = categories.find((cat: any) => cat.id === id);
-    return category ? category.nombre : id;
+    return category ? category.name : id;
   }
 
   // Get payment method name
@@ -216,7 +216,7 @@
         <input 
           type="text" 
           id="concepto" 
-          bind:value={nuevoGasto.concepto} 
+          bind:value={newExpense.concepto} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
         />
       </div>
@@ -225,7 +225,7 @@
         <input 
           type="number" 
           id="monto" 
-          bind:value={nuevoGasto.monto} 
+          bind:value={newExpense.monto} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
         />
       </div>
@@ -237,7 +237,7 @@
         <input 
           type="date" 
           id="fecha" 
-          bind:value={nuevoGasto.fecha} 
+          bind:value={newExpense.fecha} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
         />
       </div>
@@ -245,11 +245,11 @@
         <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
         <select 
           id="categoria" 
-          bind:value={nuevoGasto.categoria} 
+          bind:value={newExpense.categoria} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
         >
-          {#each categorias as categoria}
-            <option value={categoria.id}>{categoria.nombre}</option>
+          {#each categories as category}
+            <option value={category.id}>{category.name}</option>
           {/each}
         </select>
       </div>
@@ -257,11 +257,11 @@
         <label for="medioPago" class="block text-sm font-medium text-gray-700 mb-1">Medio de Pago</label>
         <select 
           id="medioPago" 
-          bind:value={nuevoGasto.medioPago} 
+          bind:value={newExpense.medioPago} 
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
         >
-          {#each mediosPago as medio}
-            <option value={medio.id}>{medio.nombre}</option>
+          {#each paymentMethods as method}
+            <option value={method.id}>{method.name}</option>
           {/each}
         </select>
       </div>
@@ -279,19 +279,19 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h3 class="text-lg font-medium mb-4">Total Gastado</h3>
-      <p class="text-3xl font-bold text-gray-900">{formatMonto(totalGastosFiltrados)}</p>
-      <p class="text-sm text-gray-500 mt-1">{gastosFiltrados.length} gastos registrados</p>
+      <p class="text-3xl font-bold text-gray-900">{formatAmount(totalFilteredExpenses)}</p>
+      <p class="text-sm text-gray-500 mt-1">{filteredExpenses.length} gastos registrados</p>
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h3 class="text-lg font-medium mb-4">Filtrar por Categoría</h3>
       <select 
-        bind:value={filtroCategoria} 
+        bind:value={categoryFilter} 
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
       >
         <option value="todas">Todas las categorías</option>
-        {#each categorias as categoria}
-          <option value={categoria.id}>{categoria.nombre}</option>
+        {#each categories as category}
+          <option value={category.id}>{category.name}</option>
         {/each}
       </select>
     </div>
@@ -299,12 +299,12 @@
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h3 class="text-lg font-medium mb-4">Filtrar por Medio de Pago</h3>
       <select 
-        bind:value={filtroMedioPago} 
+        bind:value={paymentMethodFilter} 
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
       >
         <option value="todos">Todos los medios</option>
-        {#each mediosPago as medio}
-          <option value={medio.id}>{medio.nombre}</option>
+        {#each paymentMethods as method}
+          <option value={method.id}>{method.name}</option>
         {/each}
       </select>
     </div>
@@ -316,18 +316,18 @@
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h3 class="text-lg font-medium mb-4">Distribución por Categoría</h3>
       
-      {#if Object.keys(gastosPorCategoria).length > 0}
+      {#if Object.keys(expensesByCategory).length > 0}
         <div class="space-y-4">
-          {#each Object.entries(gastosPorCategoria) as [categoriaId, monto]}
+          {#each Object.entries(expensesByCategory) as [categoryId, amount]}
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-sm font-medium">{getNombreCategoria(categoriaId)}</span>
-                <span class="text-sm">{formatMonto(monto)}</span>
+                <span class="text-sm font-medium">{getCategoryName(categoryId)}</span>
+                <span class="text-sm">{formatAmount(amount)}</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2.5">
                 <div 
                   class="h-2.5 rounded-full" 
-                  style={`width: ${Math.round((monto / totalGastosFiltrados) * 100)}%; background-color: ${coloresCategorias[categoriaId] || '#6b7280'};`}
+                  style={`width: ${Math.round((amount / totalFilteredExpenses) * 100)}%; background-color: ${getCategoryColor(categoryId)};`}
                 ></div>
               </div>
             </div>
@@ -342,18 +342,18 @@
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h3 class="text-lg font-medium mb-4">Distribución por Medio de Pago</h3>
       
-      {#if Object.keys(gastosPorMedioPago).length > 0}
+      {#if Object.keys(expensesByPaymentMethod).length > 0}
         <div class="space-y-4">
-          {#each Object.entries(gastosPorMedioPago) as [medioId, monto]}
+          {#each Object.entries(expensesByPaymentMethod) as [methodId, amount]}
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-sm font-medium">{getNombreMedioPago(medioId)}</span>
-                <span class="text-sm">{formatMonto(monto)}</span>
+                <span class="text-sm font-medium">{getPaymentMethodName(methodId)}</span>
+                <span class="text-sm">{formatAmount(amount)}</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2.5">
                 <div 
                   class="h-2.5 rounded-full bg-purple-600" 
-                  style={`width: ${Math.round((monto / totalGastosFiltrados) * 100)}%;`}
+                  style={`width: ${Math.round((amount / totalFilteredExpenses) * 100)}%;`}
                 ></div>
               </div>
             </div>
@@ -369,7 +369,7 @@
   <div class="bg-white p-6 rounded-lg shadow-md">
     <h3 class="text-lg font-medium mb-4">Listado de Gastos</h3>
     
-    {#if gastosFiltrados.length === 0}
+    {#if filteredExpenses.length === 0}
       <p class="text-gray-500 italic">No hay gastos registrados para este período.</p>
     {:else}
       <div class="overflow-x-auto">
@@ -385,23 +385,23 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each gastosFiltrados as gasto}
+            {#each filteredExpenses as expense}
               <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatFecha(gasto.fecha)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{gasto.concepto}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(expense.fecha)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{expense.concepto}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span 
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                    style={`background-color: ${getColorCategoria(gasto.categoria)}25; color: ${getColorCategoria(gasto.categoria)};`}
+                    style={`background-color: ${getCategoryColor(expense.categoria)}25; color: ${getCategoryColor(expense.categoria)};`}
                   >
-                    {getNombreCategoria(gasto.categoria)}
+                    {getCategoryName(expense.categoria)}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getNombreMedioPago(gasto.medioPago)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{formatMonto(gasto.monto)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getPaymentMethodName(expense.medioPago)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{formatAmount(expense.monto)}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button 
-                    on:click={() => eliminarGasto(gasto.id)}
+                    on:click={() => deleteExpense(expense.id)}
                     class="text-red-600 hover:text-red-900 focus:outline-none"
                   >
                     Eliminar

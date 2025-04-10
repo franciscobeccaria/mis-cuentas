@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { obtenerMediosPago, agregarMedioPago, eliminarMedioPago, editarMedioPago } from '../utils/mediosPago.js';
+  import { getPaymentMethods, addPaymentMethod, deletePaymentMethod, editPaymentMethod } from '../utils/mediosPago.js';
 
   // Interfaces para tipar los datos
   interface MedioPago {
@@ -36,7 +36,7 @@
   });
 
   function cargarMediosPago() {
-    mediosPago = obtenerMediosPago();
+    mediosPago = getPaymentMethods();
   }
 
   function agregarNuevoMedioPago() {
@@ -48,14 +48,14 @@
       return;
     }
 
-    const resultado = agregarMedioPago(nuevoMedioPago.nombre, nuevoMedioPago.icono);
+    const resultado = addPaymentMethod(nuevoMedioPago.nombre, nuevoMedioPago.icono);
 
-    if (resultado.exito) {
+    if (resultado.success) {
       mensajeExito = `Medio de pago "${nuevoMedioPago.nombre}" agregado correctamente`;
       nuevoMedioPago = { nombre: '', icono: 'credit-card' };
       cargarMediosPago();
     } else {
-      mensajeError = resultado.mensaje || 'Error al agregar el medio de pago';
+      mensajeError = resultado.message || 'Error al agregar el medio de pago';
     }
   }
 
@@ -76,29 +76,29 @@
       return;
     }
 
-    const resultado = editarMedioPago(
+    const resultado = editPaymentMethod(
       medioEditando.id, 
       medioEditando.nombre, 
       medioEditando.icono
     );
 
-    if (resultado.exito) {
+    if (resultado.success) {
       mensajeExito = `Medio de pago "${medioEditando.nombre}" actualizado correctamente`;
       medioEditando = null;
       cargarMediosPago();
     } else {
-      mensajeError = resultado.mensaje || 'Error al actualizar el medio de pago';
+      mensajeError = resultado.message || 'Error al actualizar el medio de pago';
     }
   }
 
   function eliminarMedioPagoSeleccionado(id: string, nombre: string) {
-    const resultado = eliminarMedioPago(id);
+    const resultado = deletePaymentMethod(id);
     
-    if (resultado.exito) {
+    if (resultado.success) {
       mensajeExito = `Medio de pago "${nombre}" eliminado correctamente`;
       cargarMediosPago();
     } else {
-      mensajeError = resultado.mensaje || 'Error al eliminar el medio de pago';
+      mensajeError = resultado.message || 'Error al eliminar el medio de pago';
     }
   }
 
