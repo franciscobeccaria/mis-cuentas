@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+import { obtenerCategorias } from '../utils/categorias.js';
 
   // Tipos de datos
   type Gasto = {
@@ -24,15 +25,8 @@
   let filtroMedioPago = 'todos';
   let mesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-  // Categorías y medios de pago predefinidos
-  const categorias = [
-    { id: 'supermercado', nombre: 'Supermercado' },
-    { id: 'delivery', nombre: 'Delivery' },
-    { id: 'salidas', nombre: 'Salidas' },
-    { id: 'servicios', nombre: 'Servicios' },
-    { id: 'transporte', nombre: 'Transporte' },
-    { id: 'otros', nombre: 'Otros' }
-  ];
+  // Categorías dinámicas y medios de pago predefinidos
+  let categorias = [];
 
   const mediosPago = [
     { id: 'debito', nombre: 'Tarjeta de Débito' },
@@ -44,6 +38,9 @@
 
   // Cargar datos desde localStorage al montar el componente
   onMount(() => {
+    // Cargar categorías
+    categorias = obtenerCategorias();
+    
     const storedGastos = localStorage.getItem('gastos');
     
     if (storedGastos) {
@@ -147,15 +144,11 @@
     return acc;
   }, {} as Record<string, number>);
 
-  // Colores para las categorías
-  const coloresCategorias: Record<string, string> = {
-    supermercado: '#3b82f6', // Azul
-    delivery: '#f59e0b', // Amarillo
-    salidas: '#ec4899', // Rosa
-    servicios: '#10b981', // Verde
-    transporte: '#8b5cf6', // Púrpura
-    otros: '#6b7280' // Gris
-  };
+  // Obtener color de categoría
+  function getColorCategoria(id: string): string {
+    const categoria = categorias.find(cat => cat.id === id);
+    return categoria ? categoria.color : '#6b7280';
+  }
 
   // Función para cambiar de mes
   function cambiarMes(incremento: number) {
@@ -390,7 +383,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span 
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                    style={`background-color: ${coloresCategorias[gasto.categoria] || '#6b7280'}25; color: ${coloresCategorias[gasto.categoria] || '#6b7280'};`}
+                    style={`background-color: ${getColorCategoria(gasto.categoria)}25; color: ${getColorCategoria(gasto.categoria)};`}
                   >
                     {getNombreCategoria(gasto.categoria)}
                   </span>

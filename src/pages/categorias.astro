@@ -1,0 +1,15 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import GestionCategorias from '../components/GestionCategorias.svelte';
+---
+
+<MainLayout title="Gestión de Categorías">
+  <section class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestión de Categorías</h1>
+    <p class="text-gray-600">
+      Crea, edita y elimina categorías para organizar tus gastos de manera personalizada.
+    </p>
+  </section>
+
+  <GestionCategorias client:load />
+</MainLayout>
